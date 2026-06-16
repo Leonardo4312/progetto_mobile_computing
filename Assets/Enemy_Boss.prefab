@@ -96,6 +96,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy3D
   speed: 3
+  zigZagSpeed: 5
+  zigZagWidth: 2
+  enemyLaserPrefab: {fileID: 5048275055649964402, guid: d13a2a879adda411599dddfdcef4cc2a,
+    type: 3}
+  fireRate: 1.5
+  scoreValue: 400
+  explosionPrefab: {fileID: 7653302848999263943, guid: 8615dc21374374ec385910519647bad7,
+    type: 3}
+  powerUpPrefab: {fileID: 8773054851457659512, guid: d1af0b03e071649acb3a91be9480aa60,
+    type: 3}
 --- !u!212 &-2578821944756556288
 SpriteRenderer:
   serializedVersion: 2
