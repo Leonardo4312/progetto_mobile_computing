@@ -4,7 +4,7 @@ public class PlayerGalaga : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float speed = 8f;             
-    public float xLimit = 7.5f;          
+    public float xLimit = 3.5f;          
 
     [Header("Shooting Settings")]
     public GameObject laserPrefab;       
@@ -14,20 +14,32 @@ public class PlayerGalaga : MonoBehaviour
     [Header("Power-Up Status")]
     public bool hasDoubleLaser = false;  
 
-    private float originalZ; // <--- NUOVO: Manterrà la navicella ancorata al suo binario
+    private float originalZ; 
+    private Rigidbody rb; // 🟢 NUOVO: Riferimento al Rigidbody per resettare le forze fantasma
 
     void Start()
     {
         // Memorizziamo la Z di partenza per evitare che la fisica ci spinga indietro
         originalZ = transform.position.z;
+
+        // 🟢 Recuperiamo il Rigidbody attaccato alla navicella
+        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
         // 1. MOVIMENTO ORIZZONTALE
-        float horizontalInput = Input.GetAxis("Horizontal");
+        // 🟢 MODIFICATO: Usiamo GetAxisRaw per arresto immediato senza l'effetto scivolamento
+        float horizontalInput = Input.GetAxisRaw("Horizontal");
         Vector3 direction = new Vector3(horizontalInput, 0f, 0f);
         transform.Translate(direction * speed * Time.deltaTime, Space.World);
+
+        // 🟢 NUOVO: Azzeriamo all'istante qualsiasi forza fisica accumulata da urti o esplosioni
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
 
         // 2. BLOCCO DEI BORDI (X) E ANCORAGGIO FISSO (Z)
         float clampedX = Mathf.Clamp(transform.position.x, -xLimit, xLimit);

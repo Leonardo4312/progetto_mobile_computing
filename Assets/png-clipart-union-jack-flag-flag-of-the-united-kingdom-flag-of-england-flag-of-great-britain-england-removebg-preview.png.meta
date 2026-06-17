@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4ebdf4be2ab694e30bf5ded1806312a0
+guid: 0b37ed8240c2c4695b76555585eeafa5
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8661296431632148950
-    second: pngtree-italy-flag-png-with-transparent-background-png-image_3917556_0
+      213: 1949777177845755235
+    second: png-clipart-union-jack-flag-flag-of-the-united-kingdom-flag-of-england-flag-of-great-britain-england-removebg-preview_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: pngtree-italy-flag-png-with-transparent-background-png-image_3917556_0
+      name: png-clipart-union-jack-flag-flag-of-the-united-kingdom-flag-of-england-flag-of-great-britain-england-removebg-preview_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 360
-        height: 360
+        width: 348
+        height: 347
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a261532f8c4ecc780800000000000000
-      internalID: -8661296431632148950
+      spriteID: 36de8ac43000f0b10800000000000000
+      internalID: 1949777177845755235
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      pngtree-italy-flag-png-with-transparent-background-png-image_3917556_0: -8661296431632148950
+      png-clipart-union-jack-flag-flag-of-the-united-kingdom-flag-of-england-flag-of-great-britain-england-removebg-preview_0: 1949777177845755235
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

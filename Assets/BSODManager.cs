@@ -76,8 +76,8 @@ public class BSODManager : MonoBehaviour
         if (musica != null) musica.Pause();
         if (bsodPanel != null) bsodPanel.SetActive(true);
 
-        // ⏱️ MODIFICA TEMPO: Ora aspetta 3 secondi (1 in più rispetto a prima)
-        yield return new WaitForSeconds(3f);
+        // ⏱️ MODIFICA TEMPO: Ora aspetta 4 secondi (1 in più rispetto a prima)
+        yield return new WaitForSeconds(4f);
 
         if (bsodPanel != null) bsodPanel.SetActive(false);
         if (musica != null) musica.UnPause();

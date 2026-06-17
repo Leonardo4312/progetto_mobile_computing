@@ -29,19 +29,27 @@ public class GameManager : MonoBehaviour
     [Header("Story Cutscene UI")]
     public GameObject storyPanel;        
 
-    [Header("Gameplay UI")]
+    [Header("Loading Screen Settings")]
+    public GameObject loadingPanel;       
+    public TMP_Text loadingText;          
+    public float loadingDuration = 5f;    
+
+    [Header("Gameplay UI Master Container")]
+    public GameObject gameplayUIPanel;    
+
+    [Header("Gameplay UI Elements")]
     public TMP_Text scoreText; 
     public TMP_Text stageText; 
-    public TMP_Text comboText;            // Oggetto di testo per la combo
+    public TMP_Text comboText;            
     
     [Tooltip("Espandi a 4 elementi nell'Inspector per includere Cuore_4 dell'Easter Egg!")]
     public GameObject[] heartImages;             
 
     [Header("Combo System Settings (ELITE HARDCORE)")]
-    public float comboDuration = 1.5f;     // Tempo massimo (in secondi) per concatenare le uccisioni
-    private int currentMultiplier = 1;     // Il moltiplicatore attuale (1x, 2x, 3x, 5x)
-    private int comboCount = 0;            // Contatore degli alieni uccisi di fila
-    private Coroutine comboTimerCoroutine;   // Tiene traccia del tempo che scade
+    public float comboDuration = 1.5f;     
+    private int currentMultiplier = 1;     
+    private int comboCount = 0;            
+    private Coroutine comboTimerCoroutine;   
 
     [Header("Game Over UI")]
     public GameObject gameOverPanel; 
@@ -56,7 +64,7 @@ public class GameManager : MonoBehaviour
     public TMP_Text languageBtnText;   
     public TMP_Text exitBtnText;       
 
-    private bool isItalian = false;    // Di default il gioco parte in Inglese
+    private bool isItalian = false;    
 
     private GameObject playerInstance;
 
@@ -77,21 +85,27 @@ public class GameManager : MonoBehaviour
         UpdateScoreUI(); 
         UpdateMainMenuHighScoreUI(); 
         
-        // Nascondi il testo delle combo all'avvio
         if (comboText != null) comboText.gameObject.SetActive(false);
 
-        // --- LOGICA DI GESTIONE DEI PANNELLI ALL'AVVIO ---
+        // --- GESTIONE DEI PANNELLI ALL'AVVIO ---
         if (startFromGameplay)
         {
             Time.timeScale = 1f; 
             SetAllPanelsInactive();
+            
+            if (gameplayUIPanel != null) gameplayUIPanel.SetActive(true); 
+            if (playerInstance != null) playerInstance.SetActive(true);   
+            
             StartCoroutine(MostraAnnuncioLivello());
         }
         else
         {
             Time.timeScale = 0f; 
             SetAllPanelsInactive();
+            
             if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+            if (gameplayUIPanel != null) gameplayUIPanel.SetActive(false); 
+            if (playerInstance != null) playerInstance.SetActive(false);   
         }
     }
 
@@ -103,6 +117,7 @@ public class GameManager : MonoBehaviour
         if (storyPanel != null) storyPanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (stageText != null) stageText.gameObject.SetActive(false);
+        if (loadingPanel != null) loadingPanel.SetActive(false);
         
         if (volumeSlider != null) volumeSlider.SetActive(false);
         if (languageFlags != null) languageFlags.SetActive(false);
@@ -123,7 +138,6 @@ public class GameManager : MonoBehaviour
 
         UpdateScoreUI();
         UpdateMainMenuHighScoreUI();
-        Debug.Log("Lingua impostata: ITALIANO");
     }
 
     public void SetLanguageToEnglish()
@@ -139,15 +153,14 @@ public class GameManager : MonoBehaviour
 
         UpdateScoreUI();
         UpdateMainMenuHighScoreUI();
-        Debug.Log("Language set to: ENGLISH");
     }
 
-    // --- 🕹️ FLUSSO DI NAVIGAZIONE ---
+    // --- 🕹️ FLUSSO DI NAVIGAZIONE CON LOADING ---
 
     public void ClickPlayInMainMenu()
     {
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
-        if (loginPanel != null) loginPanel.SetActive(true);
+        // 🟢 MODIFICATO: Ora anche cliccando PLAY parte il caricamento di 5 secondi prima del login!
+        StartCoroutine(LoadingRoutine(loginPanel));
     }
 
     public void BackToMainMenuFromLogin()
@@ -160,17 +173,16 @@ public class GameManager : MonoBehaviour
     {
         if (loginPanel != null) loginPanel.SetActive(false);
         
+        if (gameplayUIPanel != null) gameplayUIPanel.SetActive(true); 
+        if (playerInstance != null) playerInstance.SetActive(true);   
+
         Time.timeScale = 1f; 
         StartCoroutine(MostraAnnuncioLivello()); 
     }
 
     public void ClickOptionsInMainMenu()
     {
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
-        if (optionsMenuPanel != null) optionsMenuPanel.SetActive(true);
-        
-        if (volumeSlider != null) volumeSlider.SetActive(false);
-        if (languageFlags != null) languageFlags.SetActive(false);
+        StartCoroutine(LoadingRoutine(optionsMenuPanel));
     }
 
     public void BackToMainMenuFromOptions()
@@ -191,8 +203,7 @@ public class GameManager : MonoBehaviour
 
     public void ClickStoryInMainMenu()
     {
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
-        if (storyPanel != null) storyPanel.SetActive(true);
+        StartCoroutine(LoadingRoutine(storyPanel));
     }
 
     public void BackToMainMenuFromStory()
@@ -201,14 +212,51 @@ public class GameManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
     }
 
+    private IEnumerator LoadingRoutine(GameObject targetPanel)
+    {
+        SetAllPanelsInactive();
+        if (loadingPanel != null) loadingPanel.SetActive(true);
+
+        float elapsed = 0f;
+        float dotTimer = 0f;
+        int dotCount = 0;
+
+        string baseText = isItalian ? "CARICAMENTO" : "LOADING";
+        if (loadingText != null) loadingText.text = baseText;
+
+        while (elapsed < loadingDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            dotTimer += Time.unscaledDeltaTime;
+
+            if (dotTimer >= 0.4f)
+            {
+                dotTimer = 0f;
+                dotCount = (dotCount + 1) % 4;
+                string dots = new string('.', dotCount);
+                if (loadingText != null) loadingText.text = baseText + dots;
+            }
+
+            yield return null;
+        }
+
+        if (loadingPanel != null) loadingPanel.SetActive(false);
+        if (targetPanel != null) targetPanel.SetActive(true);
+
+        if (targetPanel == optionsMenuPanel)
+        {
+            if (volumeSlider != null) volumeSlider.SetActive(false);
+            if (languageFlags != null) languageFlags.SetActive(false);
+        }
+    }
+
     // --- 🔊 CONTROLLO AUDIO SLIDER ---
     public void SetMasterVolume(float value)
     {
         AudioListener.volume = value;
-        Debug.Log("Volume Generale impostato a: " + value);
     }
 
-    // --- 💰 SISTEMA DI PUNTEGGIO CORRENTE ---
+    // --- 💰 SISTEMA DI PUNTEGGIO ---
     public void AddScore(int points)
     {
         score += points;
@@ -221,7 +269,6 @@ public class GameManager : MonoBehaviour
         if (scoreText != null) 
         {
             string label = isItalian ? "PUNTI" : "SCORE";
-            // 🟢 AGGIORNATO: Ora mostra 9 zeri sul tabellone!
             scoreText.text = label + "\n" + score.ToString("D9"); 
         }
     }
@@ -230,24 +277,21 @@ public class GameManager : MonoBehaviour
     {
         if (mainMenuHighScoreText != null) 
         {
-            string label = isItalian ? "RECORD  " : "HIGH-SCORE  ";
-            // 🟢 AGGIORNATO: Ora mostra 9 zeri sul Record del menu principale!
+            string label = isItalian ? "RECORD  " : "HI-SCORE  ";
             mainMenuHighScoreText.text = label + highScore.ToString("D9");
         }
     }
 
-    // --- 💥 SISTEMA DI COMBO & MOLTIPLICATORE (VERSIONE ELITE HARDCORE) ---
+    // --- 💥 SISTEMA DI COMBO ---
     public void RegisterEnemyKill(int basePoints)
     {
         comboCount++; 
 
-        // Soglie di difficoltà: X2 a 10 uccisioni, X3 a 20, X5 a 30!
         if (comboCount >= 30) currentMultiplier = 5;       
         else if (comboCount >= 20) currentMultiplier = 3;  
         else if (comboCount >= 10) currentMultiplier = 2;  
         else currentMultiplier = 1;                       
 
-        // Aggiornamento della UI della combo
         if (comboText != null)
         {
             if (currentMultiplier > 1)
@@ -270,10 +314,8 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Assegna i punti modificati dal moltiplicatore attivo
         AddScore(basePoints * currentMultiplier);
 
-        // Gestione del Timer: se abbatti un altro alieno il tempo si resetta
         if (comboTimerCoroutine != null) StopCoroutine(comboTimerCoroutine);
         comboTimerCoroutine = StartCoroutine(ComboTimeoutRoutine());
     }
@@ -290,7 +332,6 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(comboDuration);
 
-        // Reset totale per tempo scaduto
         comboCount = 0;
         currentMultiplier = 1;
         
@@ -301,28 +342,32 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // --- 🟢 FUNZIONE EASTER EGG: ACCREDITO VITA EXTRA ---
     public void AddLife()
     {
-        if (lives < 4) 
-        {
+        if (lives < 4) {
             lives++;
-            
             int indiceCuore = lives - 1;
             if (heartImages != null && indiceCuore < heartImages.Length && heartImages[indiceCuore] != null)
             {
                 heartImages[indiceCuore].SetActive(true);
             }
-            Debug.Log($"[EASTER EGG] Vita aggiunta! Vite totali: {lives}");
         }
     }
 
-    // --- 🚀 GESTIONE DANNI E RESPAWN ---
     public void PlayerHit()
     {
+        if (CameraShake.instance != null)
+        {
+            CameraShake.instance.TriggerShake(0.4f, 0.5f);
+        }
+
         lives--;
         if (heartImages != null && lives >= 0 && lives < heartImages.Length) StartCoroutine(FlashAndDisableHeart(heartImages[lives]));
-        if (lives <= 0) { if (playerInstance != null) Destroy(playerInstance); TriggerGameOver(); }
+        if (lives <= 0) { 
+            if (gameplayUIPanel != null) gameplayUIPanel.SetActive(false); 
+            if (playerInstance != null) Destroy(playerInstance); 
+            TriggerGameOver(); 
+        }
         else StartCoroutine(RespawnPlayer());
     }
 
@@ -340,7 +385,6 @@ public class GameManager : MonoBehaviour
         if (playerInstance != null && lives > 0) playerInstance.SetActive(true); 
     }
 
-    // --- 🌌 PROGRESSIONE LIVELLI & EFFETTI ---
     public void AdvanceLevel() { currentLevel++; StartCoroutine(MostraAnnuncioLivello()); }
 
     IEnumerator MostraAnnuncioLivello()

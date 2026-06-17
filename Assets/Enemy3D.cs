@@ -31,6 +31,13 @@ public class Enemy3D : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+
+        // 🟢 MODIFICATO: Congela completamente la rotazione fisica.
+        // Impedisce all'alieno di girarsi su se stesso o ribaltarsi se urta qualcosa.
+        if (rb != null)
+        {
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
+        }
     }
 
     public void StartDive()
@@ -94,10 +101,16 @@ public class Enemy3D : MonoBehaviour
         // CASO 1: L'alieno viene polverizzato dal laser del giocatore
         if (collision.gameObject.CompareTag("Laser")) 
         {
-            // 1. 🟢 MODIFICATO: Ora chiama RegisterEnemyKill per svegliare le combo e il moltiplicatore!
+            // 1. Chiama RegisterEnemyKill per svegliare le combo e il moltiplicatore!
             if (GameManager.instance != null)
             {
                 GameManager.instance.RegisterEnemyKill(scoreValue);
+            }
+
+            // SCREEN SHAKE: Telecamera scossa leggermente per l'esplosione aliena!
+            if (CameraShake.instance != null)
+            {
+                CameraShake.instance.TriggerShake(0.12f, 0.15f); 
             }
 
             // 2. Genera la fiammata di particelle
@@ -106,7 +119,7 @@ public class Enemy3D : MonoBehaviour
                 Instantiate(explosionPrefab, transform.position, Quaternion.identity);
             }
 
-            // 3. MECCANICA DROP AGGIORNATA: Tolto "isDiving"! Ora cade sempre se il prefab è assegnato
+            // 3. MECCANICA DROP AGGIORNATA: Ora cade sempre se il prefab è assegnato
             if (powerUpPrefab != null) 
             {
                 Instantiate(powerUpPrefab, transform.position, Quaternion.identity);
