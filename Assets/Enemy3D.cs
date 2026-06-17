@@ -94,10 +94,10 @@ public class Enemy3D : MonoBehaviour
         // CASO 1: L'alieno viene polverizzato dal laser del giocatore
         if (collision.gameObject.CompareTag("Laser")) 
         {
-            // 1. Aggiunge i punti al tabellone
+            // 1. 🟢 MODIFICATO: Ora chiama RegisterEnemyKill per svegliare le combo e il moltiplicatore!
             if (GameManager.instance != null)
             {
-                GameManager.instance.AddScore(scoreValue);
+                GameManager.instance.RegisterEnemyKill(scoreValue);
             }
 
             // 2. Genera la fiammata di particelle

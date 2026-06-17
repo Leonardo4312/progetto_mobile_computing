@@ -32,20 +32,29 @@ public class GameManager : MonoBehaviour
     [Header("Gameplay UI")]
     public TMP_Text scoreText; 
     public TMP_Text stageText; 
+    public TMP_Text comboText;            // Oggetto di testo per la combo
+    
+    [Tooltip("Espandi a 4 elementi nell'Inspector per includere Cuore_4 dell'Easter Egg!")]
     public GameObject[] heartImages;             
+
+    [Header("Combo System Settings (ELITE HARDCORE)")]
+    public float comboDuration = 1.5f;     // Tempo massimo (in secondi) per concatenare le uccisioni
+    private int currentMultiplier = 1;     // Il moltiplicatore attuale (1x, 2x, 3x, 5x)
+    private int comboCount = 0;            // Contatore degli alieni uccisi di fila
+    private Coroutine comboTimerCoroutine;   // Tiene traccia del tempo che scade
 
     [Header("Game Over UI")]
     public GameObject gameOverPanel; 
     public RectTransform vortexTransform; 
     public TMP_Text mainMenuHighScoreText; 
 
-    [Header("Localization Texts (Trascina i figli Text TMP qui)")]
-    public TMP_Text playBtnText;       // Il testo dentro il bottone PLAY
-    public TMP_Text storyBtnText;      // Il testo dentro il bottone STORY
-    public TMP_Text optionsBtnText;    // Il testo dentro il bottone OPTIONS
-    public TMP_Text volumeBtnText;     // Il testo dentro il bottone MUSIC VOLUME
-    public TMP_Text languageBtnText;   // Il testo dentro il bottone LANGUAGE
-    public TMP_Text exitBtnText;       // Il testo dentro il bottone EXIT
+    [Header("Localization Texts")]
+    public TMP_Text playBtnText;       
+    public TMP_Text storyBtnText;      
+    public TMP_Text optionsBtnText;    
+    public TMP_Text volumeBtnText;     
+    public TMP_Text languageBtnText;   
+    public TMP_Text exitBtnText;       
 
     private bool isItalian = false;    // Di default il gioco parte in Inglese
 
@@ -68,6 +77,9 @@ public class GameManager : MonoBehaviour
         UpdateScoreUI(); 
         UpdateMainMenuHighScoreUI(); 
         
+        // Nascondi il testo delle combo all'avvio
+        if (comboText != null) comboText.gameObject.SetActive(false);
+
         // --- LOGICA DI GESTIONE DEI PANNELLI ALL'AVVIO ---
         if (startFromGameplay)
         {
@@ -98,7 +110,6 @@ public class GameManager : MonoBehaviour
 
     // --- 🌍 SISTEMA DI TRADUZIONE DINAMICA ---
 
-    // Funzione associata alla Bandierina Italiana
     public void SetLanguageToItalian()
     {
         isItalian = true;
@@ -110,13 +121,11 @@ public class GameManager : MonoBehaviour
         if (languageBtnText != null) languageBtnText.text = "LINGUA";
         if (exitBtnText != null) exitBtnText.text = "ESCI";
 
-        // Aggiorna istantaneamente le scritte dei punteggi a schermo
         UpdateScoreUI();
         UpdateMainMenuHighScoreUI();
         Debug.Log("Lingua impostata: ITALIANO");
     }
 
-    // Funzione associata alla Bandierina Inglese
     public void SetLanguageToEnglish()
     {
         isItalian = false;
@@ -132,7 +141,6 @@ public class GameManager : MonoBehaviour
         UpdateMainMenuHighScoreUI();
         Debug.Log("Language set to: ENGLISH");
     }
-
 
     // --- 🕹️ FLUSSO DI NAVIGAZIONE ---
 
@@ -181,7 +189,6 @@ public class GameManager : MonoBehaviour
         if (languageFlags != null) languageFlags.SetActive(!languageFlags.activeSelf);
     }
 
-    // --- CORE GAMEPLAY & RUNTIME UI ---
     public void ClickStoryInMainMenu()
     {
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
@@ -194,6 +201,14 @@ public class GameManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
     }
 
+    // --- 🔊 CONTROLLO AUDIO SLIDER ---
+    public void SetMasterVolume(float value)
+    {
+        AudioListener.volume = value;
+        Debug.Log("Volume Generale impostato a: " + value);
+    }
+
+    // --- 💰 SISTEMA DI PUNTEGGIO CORRENTE ---
     public void AddScore(int points)
     {
         score += points;
@@ -205,9 +220,9 @@ public class GameManager : MonoBehaviour
     {
         if (scoreText != null) 
         {
-            // Traduzione dinamica della scritta Score durante la partita
             string label = isItalian ? "PUNTI" : "SCORE";
-            scoreText.text = label + "\n" + score.ToString("D6"); 
+            // 🟢 AGGIORNATO: Ora mostra 9 zeri sul tabellone!
+            scoreText.text = label + "\n" + score.ToString("D9"); 
         }
     }
 
@@ -215,12 +230,94 @@ public class GameManager : MonoBehaviour
     {
         if (mainMenuHighScoreText != null) 
         {
-            // Traduzione dinamica del Record nei Menu
-            string label = isItalian ? "RECORD  " : "HI-SCORE  ";
-            mainMenuHighScoreText.text = label + highScore.ToString("D6");
+            string label = isItalian ? "RECORD  " : "HIGH-SCORE  ";
+            // 🟢 AGGIORNATO: Ora mostra 9 zeri sul Record del menu principale!
+            mainMenuHighScoreText.text = label + highScore.ToString("D9");
         }
     }
 
+    // --- 💥 SISTEMA DI COMBO & MOLTIPLICATORE (VERSIONE ELITE HARDCORE) ---
+    public void RegisterEnemyKill(int basePoints)
+    {
+        comboCount++; 
+
+        // Soglie di difficoltà: X2 a 10 uccisioni, X3 a 20, X5 a 30!
+        if (comboCount >= 30) currentMultiplier = 5;       
+        else if (comboCount >= 20) currentMultiplier = 3;  
+        else if (comboCount >= 10) currentMultiplier = 2;  
+        else currentMultiplier = 1;                       
+
+        // Aggiornamento della UI della combo
+        if (comboText != null)
+        {
+            if (currentMultiplier > 1)
+            {
+                comboText.gameObject.SetActive(true);
+                comboText.text = "X" + currentMultiplier + " COMBO!";
+                StartCoroutine(FlashComboTextUI());
+            }
+            else
+            {
+                if (comboCount >= 3)
+                {
+                    comboText.gameObject.SetActive(true);
+                    comboText.text = "STREAK x" + comboCount; 
+                }
+                else
+                {
+                    comboText.gameObject.SetActive(false); 
+                }
+            }
+        }
+
+        // Assegna i punti modificati dal moltiplicatore attivo
+        AddScore(basePoints * currentMultiplier);
+
+        // Gestione del Timer: se abbatti un altro alieno il tempo si resetta
+        if (comboTimerCoroutine != null) StopCoroutine(comboTimerCoroutine);
+        comboTimerCoroutine = StartCoroutine(ComboTimeoutRoutine());
+    }
+
+    IEnumerator FlashComboTextUI()
+    {
+        if (comboText == null) yield break;
+        comboText.color = Color.white; 
+        yield return new WaitForSeconds(0.08f);
+        comboText.color = new Color(0f, 1f, 1f); 
+    }
+
+    IEnumerator ComboTimeoutRoutine()
+    {
+        yield return new WaitForSeconds(comboDuration);
+
+        // Reset totale per tempo scaduto
+        comboCount = 0;
+        currentMultiplier = 1;
+        
+        if (comboText != null)
+        {
+            comboText.text = "";
+            comboText.gameObject.SetActive(false);
+        }
+    }
+
+    // --- 🟢 FUNZIONE EASTER EGG: ACCREDITO VITA EXTRA ---
+    public void AddLife()
+    {
+        if (lives < 4) 
+        {
+            lives++;
+            
+            int indiceCuore = lives - 1;
+            if (heartImages != null && indiceCuore < heartImages.Length && heartImages[indiceCuore] != null)
+            {
+                heartImages[indiceCuore].SetActive(true);
+            }
+            Debug.Log($"[EASTER EGG] Vita aggiunta! Vite totali: {lives}");
+        }
+    }
+
+    // --- 🚀 GESTIONE DANNI E RESPAWN ---
     public void PlayerHit()
     {
         lives--;
@@ -243,6 +340,7 @@ public class GameManager : MonoBehaviour
         if (playerInstance != null && lives > 0) playerInstance.SetActive(true); 
     }
 
+    // --- 🌌 PROGRESSIONE LIVELLI & EFFETTI ---
     public void AdvanceLevel() { currentLevel++; StartCoroutine(MostraAnnuncioLivello()); }
 
     IEnumerator MostraAnnuncioLivello()
@@ -250,7 +348,6 @@ public class GameManager : MonoBehaviour
         if (stageText == null) yield break;
         stageText.gameObject.SetActive(true);
         
-        // Traduzione dinamica della scritta Level a inizio livello
         string prefix = isItalian ? "LIVELLO " : "LEVEL ";
         stageText.text = prefix + currentLevel.ToString("D2");
         
@@ -273,5 +370,15 @@ public class GameManager : MonoBehaviour
         while (tempo < 1.5f) { tempo += Time.unscaledDeltaTime; float p = tempo / 1.5f; vortexTransform.localScale = Vector3.Lerp(Vector3.zero, new Vector3(50f, 50f, 50f), p); vortexTransform.Rotate(0f, 0f, 600f * Time.unscaledDeltaTime); yield return null; }
     }
 
-    void ResetHeartsUI() { if (heartImages == null) return; foreach (GameObject h in heartImages) { if (h != null) h.SetActive(true); } }
+    void ResetHeartsUI() 
+    { 
+        if (heartImages == null) return; 
+        for (int i = 0; i < heartImages.Length; i++)
+        {
+            if (heartImages[i] != null)
+            {
+                heartImages[i].SetActive(i < 3);
+            }
+        }
+    }
 }

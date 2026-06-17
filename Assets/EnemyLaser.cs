@@ -23,8 +23,11 @@ public class EnemyLaser : MonoBehaviour
         {
             Destroy(gameObject);           // Il laser si distrugge
             
-            // Attiva il Game Over spettacolare col vortice!
-            GameManager.instance.PlayerHit();
+            // 🟢 AGGIORNATO: Aggiunto null-check di sicurezza sul GameManager
+            if (GameManager.instance != null)
+            {
+                GameManager.instance.PlayerHit();
+            }
         }
     }
 }
