@@ -162,7 +162,7 @@ public class GameManager : MonoBehaviour
         {
             storyContentText.text = "L'anno è il 2026. Lo spazio profondo è sotto l'attacco di incessanti ondate di sciami alieni ostili. Come avanguardia della Flotta Stellare, controlli la navicella da combattimento definitiva della galassia. La tua missione è semplice: distruggi le formazioni nemiche, schiva i letali attacchi kamikaze e conquista il punteggio record!\n\nMa tieni gli occhi aperti, pilota... La matrice di questo settore è altamente instabile. Gira voce di glitch di sistema nascosti e segreti sepolti nel profondo...\n\nRiuscirai a sopravvivere alla più grande minaccia della galassia?";
         }
-        if (storyBackBtnText != null) storyBackBtnText.text = "INDIETRO"; // 🟢 Tradotto!
+        if (storyBackBtnText != null) storyBackBtnText.text = "INDIETRO"; 
 
         // Login Panel
         if (loginBtnText != null) loginBtnText.text = "ACCEDI";

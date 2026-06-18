@@ -13,13 +13,17 @@ public class PlayFabAuth : MonoBehaviour
     // Funzione associata al bottone LOGIN
     public void OnClickLogin()
     {
+        
         if (usernameInput.text.Length < 3 || passwordInput.text.Length < 6)
         {
-            statusText.text = "L'username deve avere 3 caratteri e la password almeno 6!";
+            statusText.text = GameManager.instance.isItalian 
+                ? "L'username deve avere 3 caratteri e la password almeno 6!" 
+                : "Username must be at least 3 characters and password at least 6!";
             return;
         }
 
-        statusText.text = "Connessione a PlayFab...";
+        
+        statusText.text = GameManager.instance.isItalian ? "Connessione a PlayFab..." : "Connecting to PlayFab...";
 
         var request = new LoginWithPlayFabRequest
         {
@@ -33,13 +37,17 @@ public class PlayFabAuth : MonoBehaviour
     // Funzione associata al bottone REGISTRATI
     public void OnClickRegister()
     {
+        
         if (usernameInput.text.Length < 3 || passwordInput.text.Length < 6)
         {
-            statusText.text = "Username (min 3) o Password (min 6) non validi!";
+            statusText.text = GameManager.instance.isItalian 
+                ? "Username (min 3) o Password (min 6) non validi!" 
+                : "Invalid Username (min 3) or Password (min 6)!";
             return;
         }
 
-        statusText.text = "Creazione account...";
+       
+        statusText.text = GameManager.instance.isItalian ? "Creazione account..." : "Creating account...";
 
         var request = new RegisterPlayFabUserRequest
         {
@@ -53,25 +61,36 @@ public class PlayFabAuth : MonoBehaviour
 
     private void OnLoginSuccess(LoginResult result)
     {
-        statusText.text = "Accesso consentito!";
-        // Comunichiamo al GameManager che il login è andato a buon fine
+        
+        statusText.text = GameManager.instance.isItalian ? "Accesso consentito!" : "Access granted!";
+        
+       
         GameManager.instance.OnLoginVerified();
     }
 
     private void OnLoginFailure(PlayFabError error)
     {
-        statusText.text = "Errore Login: " + error.ErrorMessage;
+        
+        string errorePrefisso = GameManager.instance.isItalian ? "Errore Login: " : "Login Error: ";
+        statusText.text = errorePrefisso + error.ErrorMessage;
+        
         Debug.LogError(error.GenerateErrorReport());
     }
 
     private void OnRegisterSuccess(RegisterPlayFabUserResult result)
     {
-        statusText.text = "Account Creato! Premi LOGIN per entrare.";
+        
+        statusText.text = GameManager.instance.isItalian 
+            ? "Account Creato! Premi ACCEDI per entrare." 
+            : "Account Created! Press LOGIN to enter.";
     }
 
     private void OnRegisterFailure(PlayFabError error)
     {
-        statusText.text = "Errore Reg: " + error.ErrorMessage;
+       
+        string errorePrefisso = GameManager.instance.isItalian ? "Errore Reg: " : "Registration Error: ";
+        statusText.text = errorePrefisso + error.ErrorMessage;
+        
         Debug.LogError(error.GenerateErrorReport());
     }
 }
